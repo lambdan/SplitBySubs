@@ -4,6 +4,7 @@ import subprocess
 import argparse, fnmatch
 
 TMPFILE='tmp.srt'
+TMPFILE2='tmp2.srt'
 
 parser = argparse.ArgumentParser(description='Split a movie into sub-movies based on subtitle timing')
 parser.add_argument('movie', metavar='MOVIE', type=str,
@@ -38,6 +39,12 @@ parser.add_argument('--shift', metavar='SECONDS',action='store', type=float, def
                     help='Shift subtitles forward/back by SECONDS')
 parser.add_argument('-v', '--verbose', action='store_true',
                     help='Print output from ffmpeg, and command being run')
+parser.add_argument('--start-offset', dest='start_offset',action='store', type=float, default=0,
+                    help='Start clip n seconds earlier')
+parser.add_argument('--end-offset', dest='end_offset',action='store', type=float, default=0,
+                    help='End clip n seconds later')
+parser.add_argument('--width', dest='width', action='store', type=int, default=0,
+					help='Downscale video to this width')
 
 args = parser.parse_args()
 
@@ -169,25 +176,41 @@ try:
 			end_secs = ftime(end_entry.end)
 		print filename
 
+		filters = []
 		cmd = ['ffmpeg', '-y']
+
+		start_secs = start_secs - args.start_offset # start clip n earlier
+		end_secs = end_secs + args.end_offset # end clip n later
+
+		cmd.extend(['-ss',str(start_secs),'-to',str(end_secs)])
+
 		if not args.verbose:
 			cmd.extend(['-hide_banner','-loglevel','panic','-v','quiet'])
 		cmd.extend(['-i', args.movie])
-		if args.subs:
-			subsfilter = 'subtitles='+TMPFILE
+		if args.subs and not args.between: # put every line individually in their own srt because drawtext filter is annoying
+			with open(TMPFILE2,'w') as f:
+				f.write('1\n')
+				f.write('00:00:00,000 --> 00:00:30,000\n') # 30 secs should be plenty for any line
+				f.write(entry.content)
+				f.write('\n\n')
 			if args.fontsize:
-				subsfilter = "{}:force_style='Fontsize={}'".format(subsfilter, args.fontsize)
-			cmd.extend(['-vf',subsfilter])
+				filters.append("subtitles=" + TMPFILE2 + ":force_style='Fontsize={}'".format(args.fontsize))
+			else:
+				filters.append('subtitles=' + TMPFILE2)
 			
+		if args.width:
+			filters.append('scale=' + str(args.width) + ':-1:lanczos')
 
-		cmd.extend(['-ss',str(start_secs),'-to',str(end_secs)])
+		if len(filters) > 0:
+			filter_string = ",".join(filters)
+			cmd.extend(['-filter_complex',filter_string])
+
 		if args.twitter:
 			cmd.extend([
 			'-pix_fmt', 'yuv420p', '-vcodec', 'libx264',
-			#'-vf', 'scale=640:-1',
-			'-acodec', 'aac', '-vb', '1024k',
-			'-minrate', '1024k', '-maxrate', '1024k',
-			'-bufsize', '1024k', '-ar', '44100', '-ac', '2', '-strict', 'experimental', '-r', '30',
+			'-acodec', 'aac', 
+			'-crf', '19',
+			'-ar', '44100', '-ac', '2', '-strict', 'experimental', '-r', '30',
 		])
 		cmd.append(path)
 
@@ -198,3 +221,4 @@ try:
 finally:
 	if args.subs:
 		quiet_erase(TMPFILE)
+		quiet_erase(TMPFILE2)
