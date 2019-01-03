@@ -38,12 +38,12 @@ parser.add_argument('--shift', metavar='SECONDS',action='store', type=float, def
                     help='Shift subtitles forward/back by SECONDS')
 parser.add_argument('-v', '--verbose', action='store_true',
                     help='Print output from ffmpeg, and command being run')
-parser.add_argument('--start-offset', dest='start_offset',action='store', type=float, default=0,
+parser.add_argument('-so', '--start-offset', dest='start_offset', metavar="SECONDS", action='store', type=float, default=0,
                     help='Start clip n seconds earlier')
-parser.add_argument('--end-offset', dest='end_offset',action='store', type=float, default=0,
+parser.add_argument('-eo', '--end-offset', dest='end_offset', metavar="SECONDS", action='store', type=float, default=0,
                     help='End clip n seconds later')
-parser.add_argument('--width', dest='width', action='store', type=int, default=0,
-					help='Downscale video to this width')
+parser.add_argument('-w', '--width', dest='width', metavar="PIXELS", action='store', type=int, default=0,
+					help='Downscale video to this width (height calculated automatically)')
 
 args = parser.parse_args()
 
@@ -174,8 +174,12 @@ try:
 		filters = []
 		cmd = ['ffmpeg', '-y']
 
-		start_secs = start_secs - args.start_offset # start clip n earlier
-		end_secs = end_secs + args.end_offset # end clip n later
+		if args.start_offset:
+			start_secs = start_secs - args.start_offset # start clip n earlier
+			if start_secs < 0:
+				start_secs = 0
+		if args.end_offset:
+			end_secs = end_secs + args.end_offset # end clip n later
 
 		cmd.extend(['-ss',str(start_secs),'-to',str(end_secs)])
 
@@ -210,6 +214,7 @@ try:
 
 		if args.verbose:
 			print subprocess.list2cmdline(cmd)
+			#os.system("pause") # useful for debuggin
 		subprocess.check_call(cmd)
 
 finally:
