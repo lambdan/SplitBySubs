@@ -3,6 +3,7 @@ import sys,srt,re,os,shutil, json, datetime
 import subprocess
 import argparse, fnmatch
 
+
 TMPFILE='tmp.srt'
 TMPFILE2='tmp2.srt'
 EXTENSION='.mp4'
@@ -46,6 +47,9 @@ parser.add_argument('-w', '--width', dest='width', metavar="PIXELS", action='sto
 					help='Downscale video to this width (height calculated automatically)')
 
 args = parser.parse_args()
+
+reload(sys)
+sys.setdefaultencoding(args.encoding)
 
 if args.outdir is None:
 	args.outdir = os.path.splitext(args.movie)[0]+(' betweens' if args.between else ' clips')
