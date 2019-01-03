@@ -17,8 +17,6 @@ parser.add_argument('-f', '--fontsize', action='store',type=float,
                     help='set point size of hard-subs')
 parser.add_argument('-o', '--out',dest='outdir', action='store', type=str, nargs='?',
                     help='destination directory for clips. Defaults to the movie name + " clips" (or " betweens" for the -b mode)')
-parser.add_argument('-t', '--twitter', action='store_true',
-                    help='Convert video to best play on twitter')
 parser.add_argument('-b', '--between', action='store_true',
                     help='Instead of extracting the dialogue clips, extract the parts between them')
 parser.add_argument('--end-early', dest="endearly", action='store', nargs='?', type=float, default=0.3,
@@ -115,9 +113,8 @@ if args.shift is not None:
 		shifted_subs.append(srt.Subtitle(e.index,e.start+shift_amount,e.end+shift_amount,e.content,e.proprietary))
 	subtitles = shifted_subs
 
-EXTENSION = os.path.splitext(args.movie)[1]
-if args.twitter:
-	EXTENSION='.mp4'
+
+EXTENSION='.mp4'
 
 quiet_mkdir(args.outdir)
 
@@ -205,8 +202,7 @@ try:
 			filter_string = ",".join(filters)
 			cmd.extend(['-filter_complex',filter_string])
 
-		if args.twitter:
-			cmd.extend([
+		cmd.extend([
 			'-pix_fmt', 'yuv420p', '-vcodec', 'libx264',
 			'-acodec', 'aac', 
 			'-crf', '19',
