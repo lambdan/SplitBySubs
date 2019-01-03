@@ -220,6 +220,7 @@ try:
 			'-pix_fmt', 'yuv420p', '-vcodec', 'libx264',
 			'-acodec', 'aac', 
 			'-crf', '19',
+			'-map_metadata', '-1',
 			'-ar', '44100', '-ac', '2', '-strict', 'experimental', '-r', '30',
 		])
 		cmd.append(path)
