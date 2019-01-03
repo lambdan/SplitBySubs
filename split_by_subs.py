@@ -5,6 +5,7 @@ import argparse, fnmatch
 
 TMPFILE='tmp.srt'
 TMPFILE2='tmp2.srt'
+EXTENSION='.mp4'
 
 parser = argparse.ArgumentParser(description='Split a movie into sub-movies based on subtitle timing')
 parser.add_argument('movie', metavar='MOVIE', type=str,
@@ -112,9 +113,6 @@ if args.shift is not None:
 	for e in subtitles:
 		shifted_subs.append(srt.Subtitle(e.index,e.start+shift_amount,e.end+shift_amount,e.content,e.proprietary))
 	subtitles = shifted_subs
-
-
-EXTENSION='.mp4'
 
 quiet_mkdir(args.outdir)
 
