@@ -45,6 +45,9 @@ parser.add_argument('-eo', '--end-offset', dest='end_offset', metavar="SECONDS",
                     help='End clip n seconds later')
 parser.add_argument('-w', '--width', dest='width', metavar="PIXELS", action='store', type=int, default=0,
 					help='Downscale video to this width (height calculated automatically)')
+parser.add_argument('-n', '--no-overwrite', dest='no_overwrite', action='store_true',
+                    help='Skip if clip already exists')
+
 
 args = parser.parse_args()
 
@@ -160,6 +163,11 @@ try:
 			name = clean(entry.content)
 		filename='clip{:04} {}{}'.format(entry.index,name,EXTENSION)
 		path = os.path.join(args.outdir,filename)
+
+		if args.no_overwrite:
+			if os.path.exists(path):
+				continue
+
 		if args.between:
 			start_secs = last_end + offset
 			end_secs = ftime(entry.start) - offset - args.endearly
