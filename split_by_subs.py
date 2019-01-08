@@ -210,7 +210,7 @@ try:
 				filters.append('subtitles=' + TMPFILE2)
 			
 		if args.width:
-			filters.append('scale=' + str(args.width) + ':-1:lanczos')
+			filters.append('scale=' + str(args.width) + ':-1:flags=lanczos')
 
 		if len(filters) > 0:
 			filter_string = ",".join(filters)
